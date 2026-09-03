@@ -278,4 +278,10 @@ def downgrade() -> None:
     op.drop_index('ix_audit_event_created', table_name='audit_logs')
     op.drop_index('ix_audit_entity_created', table_name='audit_logs')
     op.drop_table('audit_logs')
+
+    # Drop PostgreSQL enum types if they exist
+    bind = op.get_bind()
+    if bind.dialect.name == 'postgresql':
+        for enum_name in ['actionstatus', 'actiontype', 'casestatus', 'attemptstatus', 'paymentmethod', 'transactionstatus', 'campaignchannel']:
+            op.execute(f'DROP TYPE IF EXISTS {enum_name} CASCADE')
     # ### end Alembic commands ###

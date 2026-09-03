@@ -1,7 +1,7 @@
 """Production Security, RBAC, Recovery Tokens, and Invitations
 
 Revision ID: a8910bc12345
-Revises: f432cf614865
+Revises: e1289bc12340
 Create Date: 2026-08-31 20:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'a8910bc12345'
-down_revision: Union[str, None] = 'f432cf614865'
+down_revision: Union[str, None] = 'e1289bc12340'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
