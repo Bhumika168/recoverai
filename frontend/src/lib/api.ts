@@ -16,18 +16,24 @@ import {
   ManualTransactionPayload,
 } from "./types";
 
+const PRODUCTION_BACKEND_URL = "https://recoverai-u329.onrender.com";
+
 const getApiBase = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    const base = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && envUrl.trim()) {
+    const base = envUrl.trim().replace(/\/$/, "");
     return base.endsWith("/api/v1") ? base : `${base}/api/v1`;
   }
   if (typeof window !== "undefined") {
     const host = window.location.hostname || "localhost";
     const protocol = window.location.protocol || "http:";
-    if (host !== "localhost" && host !== "127.0.0.1") {
-      return `${protocol}//${window.location.host}/api/v1`;
+    if (host.includes("onrender.com") || (host !== "localhost" && host !== "127.0.0.1")) {
+      return `${PRODUCTION_BACKEND_URL}/api/v1`;
     }
     return `http://${host}:8000/api/v1`;
+  }
+  if (process.env.NODE_ENV === "production") {
+    return `${PRODUCTION_BACKEND_URL}/api/v1`;
   }
   return "http://localhost:8000/api/v1";
 };
