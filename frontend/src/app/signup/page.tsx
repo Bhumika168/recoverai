@@ -41,6 +41,11 @@ export default function SignUpPage() {
       return;
     }
 
+    if (companyName.trim() && companyName.trim().length < 2) {
+      setError("Company name must be at least 2 characters.");
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);

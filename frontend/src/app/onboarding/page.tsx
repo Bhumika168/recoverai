@@ -98,6 +98,14 @@ export default function OnboardingPage() {
       setError("Please specify your organization name.");
       return;
     }
+    if (companyName.trim().length < 2) {
+      setError("Organization name must be at least 2 characters.");
+      return;
+    }
+    if (companyName.trim().length > 100) {
+      setError("Organization name must be 100 characters or less.");
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -269,6 +277,8 @@ export default function OnboardingPage() {
                     <input
                       type="text"
                       required
+                      minLength={2}
+                      maxLength={100}
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Acme Payments, Nova Technologies..."

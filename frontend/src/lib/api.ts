@@ -88,7 +88,17 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || errorData.detail || `API request failed with status ${res.status}`);
+      let message = errorData.message || errorData.detail || `API request failed with status ${res.status}`;
+      if (errorData.error?.details && Array.isArray(errorData.error.details) && errorData.error.details.length > 0) {
+        const detailStr = errorData.error.details
+          .map((d: any) => {
+            const loc = d.loc && d.loc.length > 1 ? d.loc.slice(1).join(".") : "field";
+            return `${loc}: ${d.msg}`;
+          })
+          .join(", ");
+        message = `${message} (${detailStr})`;
+      }
+      throw new Error(message);
     }
 
     const json = await res.json();
