@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
+const rawBackend = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
 const backendUrl =
-  process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://recoverai-u329.onrender.com";
+  rawBackend && !rawBackend.includes("recoverai-3ny5.onrender.com")
+    ? rawBackend
+    : "https://recoverai-u329.onrender.com";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

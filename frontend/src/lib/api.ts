@@ -20,7 +20,7 @@ const PRODUCTION_BACKEND_URL = "https://recoverai-u329.onrender.com";
 
 const getApiBase = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (envUrl && envUrl.trim()) {
+  if (envUrl && envUrl.trim() && !envUrl.includes("recoverai-3ny5.onrender.com")) {
     const base = envUrl.trim().replace(/\/$/, "");
     return base.endsWith("/api/v1") ? base : `${base}/api/v1`;
   }

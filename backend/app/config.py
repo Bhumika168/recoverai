@@ -11,9 +11,10 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     PORT: int = 8000
     HOST: str = "0.0.0.0"
-    APP_URL: str = "http://localhost:3000"
-    API_URL: str = "http://localhost:8000"
+    APP_URL: str = "https://recoverai-3ny5.onrender.com" if os.getenv("RENDER") else "http://localhost:3000"
+    API_URL: str = "https://recoverai-u329.onrender.com" if os.getenv("RENDER") else "http://localhost:8000"
     CORS_ORIGINS: Union[List[str], str] = [
+        "https://recoverai-3ny5.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
@@ -53,15 +54,45 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",") if i.strip()]
-        elif isinstance(v, str) and v.startswith("["):
-            import json
-            try:
-                return json.loads(v)
-            except Exception:
-                return [v]
-        return v
+        origins: List[str] = []
+        if isinstance(v, str):
+            v_clean = v.strip()
+            if v_clean.startswith("[") and v_clean.endswith("]"):
+                import json
+                try:
+                    parsed = json.loads(v_clean)
+                    if isinstance(parsed, list):
+                        for item in parsed:
+                            if isinstance(item, str) and item.strip():
+                                clean = item.strip().strip("'\"").rstrip("/")
+                                if clean and clean not in origins:
+                                    origins.append(clean)
+                except Exception:
+                    pass
+            if not origins:
+                for item in v_clean.split(","):
+                    clean = item.strip().strip("'\"").rstrip("/")
+                    if clean and clean not in origins:
+                        origins.append(clean)
+        elif isinstance(v, list):
+            for item in v:
+                if isinstance(item, str) and item.strip():
+                    clean = item.strip().strip("'\"").rstrip("/")
+                    if clean and clean not in origins:
+                        origins.append(clean)
+
+        # Always include production frontend origin and local dev origins
+        known_origins = [
+            "https://recoverai-3ny5.onrender.com",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8000",
+        ]
+        for known in known_origins:
+            if known not in origins:
+                origins.append(known)
+
+        return origins
 
     model_config = SettingsConfigDict(
         env_file=".env",
