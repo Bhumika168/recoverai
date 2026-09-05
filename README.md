@@ -2,44 +2,42 @@
 
 ### Autonomous AI Revenue Recovery Platform
 
-RecoverAI is an AI-powered revenue recovery platform that helps businesses identify, prioritize, and recover failed payment revenue while keeping financial actions governed by deterministic business policies.
+RecoverAI is a full-stack AI-powered revenue recovery platform that helps businesses identify failed payments, diagnose failure causes, determine safe recovery strategies, and execute policy-governed recovery workflows.
 
-The platform combines AI-based failure diagnosis with policy-controlled recovery, human approval gates, verified settlement, bounded retries, and a cryptographically linked audit trail.
+The platform combines AI-driven diagnosis with deterministic business policies, human approval controls, verified settlement, bounded retries, multi-tenant architecture, and a cryptographically linked audit trail.
 
 ---
 
 ## Problem
 
-Failed payments create significant revenue leakage for subscription and digital businesses.
+Failed payments can result from temporary gateway failures, customer action requirements, expired payment information, hard declines, or repeated failures.
 
-A failed transaction may be caused by:
+Blindly retrying every failed transaction can create unnecessary customer friction and unsafe financial actions.
 
-- Temporary gateway or network failures
-- Customer action requirements
-- Expired payment information
-- Hard declines
-- Repeated failures
-- Other payment-related issues
+RecoverAI addresses this by determining:
 
-Automatically retrying every failed payment is unsafe and inefficient.
-
-RecoverAI addresses this by determining **which transactions should be recovered, how they should be recovered, and when recovery must stop.**
+- Why a payment failed
+- Whether recovery should be attempted
+- Which recovery action is appropriate
+- Whether human approval is required
+- When automated recovery should stop
+- Whether the payment was actually recovered
 
 ---
 
 ## Solution
 
-RecoverAI follows a controlled recovery pipeline:
+RecoverAI follows a controlled recovery workflow:
 
 **Detect → Diagnose → Decide → Guard → Recover → Verify**
 
-The AI analyzes the failure and recommends a recovery action.
+The AI analyzes transaction failures and recommends recovery actions.
 
-A deterministic policy engine then evaluates that recommendation against business rules before any recovery action is executed.
+A deterministic policy engine evaluates those recommendations against explicit business rules before execution.
 
-High-value transactions require human approval.
+High-value transactions can require human approval, while unsafe recovery attempts such as hard declines or exhausted retries are blocked or stopped.
 
-A transaction is counted as recovered only after successful settlement verification.
+Revenue is recognized as recovered only after successful settlement verification.
 
 ---
 
@@ -47,14 +45,14 @@ A transaction is counted as recovered only after successful settlement verificat
 
 ### AI Failure Diagnosis
 
-The AI diagnostician analyzes transaction failure information and produces:
+Analyzes failed payment information and determines:
 
 - Failure category
 - Confidence score
 - Probable root cause
 - Recommended recovery action
 
-### Deterministic Recovery Policies
+### Deterministic Policy Engine
 
 AI recommendations are evaluated against explicit business rules.
 
@@ -69,127 +67,68 @@ Policies include:
 
 ### Human Approval
 
-Transactions above the configured **₹25,000 threshold** require human approval before recovery execution.
+High-value transactions above the configured business threshold require human approval before recovery execution.
 
-This ensures that AI recommendations do not independently authorize financial actions.
+This prevents the AI from independently authorizing high-risk financial actions.
 
 ### Verified Recovery
 
-Revenue is counted as recovered only after successful settlement verification.
+A transaction is counted as recovered only after successful settlement verification.
 
 An attempted retry does not count as recovered revenue.
 
 ### Bounded Recovery
 
-Recovery attempts are limited by explicit stopping rules.
+Recovery attempts are limited by predefined stopping rules.
 
-Transactions that reach the maximum retry limit are stopped and escalated rather than retried indefinitely.
+Transactions that reach the maximum retry limit are stopped and escalated instead of being retried indefinitely.
+
+### Multi-Tenant Architecture
+
+Organizations are isolated at the application and data-access layers.
+
+Each organization manages its own:
+
+- Transactions
+- Recovery cases
+- Users
+- Settings
+- Integrations
+- Audit records
 
 ### Audit Trail
 
-Recovery decisions and actions are recorded in a SHA-256 chained audit trail.
+Important recovery events are recorded using a SHA-256 chained audit trail.
 
-This provides tamper-evident visibility into:
+The audit trail captures:
 
 - AI decisions
 - Policy decisions
 - Recovery actions
 - Human approvals
 - Verification events
+- Authentication events
+- System events
 
-### Multi-Tenant Architecture
+### Provider-Agnostic Integration
 
-Organizations are isolated at the application and data-access layers.
+RecoverAI uses an abstraction layer for payment providers, allowing the recovery engine to work independently of a specific payment gateway.
 
-Users can manage their own organization, transactions, recovery cases, integrations, and audit records.
-
----
-
-## Demonstration
-
-RecoverAI includes an isolated synthetic sandbox demonstrating the complete recovery workflow.
-
-### Initial State
-
-- Failed transactions: **50**
-- Revenue at risk: **₹419,800**
-- Verified recovered revenue: **₹0**
-- Recovery rate: **0%**
-
-### After Autonomous Recovery
-
-- Transactions analyzed: **50**
-- Automatically recovered: **24**
-- Verified recovered revenue: **₹115,400**
-- Recovery rate: **27.5%**
-- In progress: **10**
-- Awaiting human approval: **4**
-- Hard declines blocked: **6**
-- Transactions stopped/escalated: **6**
-
-### After Human Approval
-
-A high-value transaction of **₹50,000** is held because it exceeds the **₹25,000 human approval threshold**.
-
-After approval and successful sandbox settlement verification:
-
-- Verified recovered revenue: **₹165,400**
-- Recovery rate: **39.4%**
-
-All recovery figures are calculated from the application's persisted transaction data.
-
----
-
-## Example Guardrails
-
-### High-Value Transaction
-
-**₹50,000 — Gateway Error**
-
-- AI diagnosis: Temporary Failure
-- AI confidence: 92%
-- Recommended action: Delayed Retry
-- Policy: High-Value Approval Gate
-- Threshold: ₹25,000
-- Result: Human approval required
-- Final result: Verified sandbox recovery after approval
-
-### Hard Decline
-
-**₹12,000 — Card Stolen/Lost**
-
-- AI diagnosis: Hard Decline
-- AI confidence: 99%
-- Policy: Hard-Decline Suppression
-- Result: Recovery blocked
-- Automated retries: 0
-
-### Retry Limit
-
-**₹4,200 — Repeated Failure**
-
-- Previous attempts: 3
-- Policy: Maximum Retry Limit
-- Result: Recovery stopped and escalated
-- No fourth automated retry
+The architecture supports sandbox/mock processing and provider adapters.
 
 ---
 
 ## Safety Model
 
-RecoverAI follows a layered decision architecture:
+RecoverAI separates AI reasoning from financial authorization.
 
-**AI Diagnostician → Decision Engine → Deterministic Policy Engine → Human Approval Gate → Recovery Executor → Settlement Verification → Audit Trail**
+**AI recommends. Policies govern. Humans approve high-risk actions. Verification confirms recovery.**
 
-The AI recommends actions.
+The decision flow is:
 
-The policy engine determines whether those actions are permitted.
+**AI Diagnostician → Decision Engine → Deterministic Policy Engine → Human Approval Gate → Recovery Executor → Settlement Verifier → Audit Trail**
 
-The executor performs only policy-approved actions.
-
-The verifier determines whether money was actually recovered.
-
-The AI does **not** independently authorize financial actions.
+The AI does not independently authorize financial actions.
 
 ---
 
@@ -246,6 +185,25 @@ The AI does **not** independently authorize financial actions.
 
 ---
 
+## Application Flow
+
+1. User creates an account.
+2. User creates an organization/workspace.
+3. Company information and recovery guardrails are configured.
+4. Transactions are added through supported data sources.
+5. RecoverAI detects failed transactions.
+6. The AI diagnoses the probable failure reason.
+7. The AI recommends a recovery action.
+8. The deterministic policy engine evaluates the recommendation.
+9. Unsafe or prohibited actions are blocked.
+10. High-value actions are held for human approval.
+11. Approved recovery actions are executed.
+12. Settlement is independently verified.
+13. Only verified settlements contribute to recovered revenue.
+14. Recovery decisions and actions are recorded in the audit trail.
+
+---
+
 ## Technology Stack
 
 ### Frontend
@@ -253,7 +211,7 @@ The AI does **not** independently authorize financial actions.
 - Next.js
 - React
 - TypeScript
-- App Router
+- Next.js App Router
 
 ### Backend
 
@@ -269,12 +227,20 @@ The AI does **not** independently authorize financial actions.
 - PostgreSQL
 - SQLite development support
 
+### APIs and Integration
+
+- REST APIs
+- Provider abstraction layer
+- Webhook processing
+- Webhook signature verification
+- Idempotent event handling
+
 ### Security
 
 - JWT authentication
 - Organization-level authorization
 - Multi-tenant isolation
-- HTTP-only cookie support
+- Secure cookies
 - CORS protection
 - Rate limiting
 - Secret redaction
@@ -284,31 +250,19 @@ The AI does **not** independently authorize financial actions.
 
 ---
 
-## Application Flow
-
-1. User creates an account.
-2. User creates an organization/workspace.
-3. Company information and recovery guardrails are configured.
-4. Failed transactions are added through supported data sources.
-5. RecoverAI detects failed transactions.
-6. The AI diagnoses the probable failure reason.
-7. The AI recommends a recovery action.
-8. The deterministic policy engine evaluates the recommendation.
-9. Unsafe or prohibited actions are blocked.
-10. High-value actions are held for human approval.
-11. Approved recovery actions are executed.
-12. Settlement is independently verified.
-13. Only verified settlements contribute to recovered revenue.
-14. Every important decision and action is recorded in the audit trail.
-
----
-
 ## Project Structure
 
 ```text
 recoverai/
 ├── backend/
 │   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── db/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   └── main.py
 │   ├── alembic/
 │   ├── tests/
 │   └── requirements.txt
@@ -317,7 +271,8 @@ recoverai/
 │   ├── app/
 │   ├── src/
 │   ├── public/
-│   └── package.json
+│   ├── package.json
+│   └── package-lock.json
 │
 ├── docs/
 ├── .env.example
@@ -326,191 +281,429 @@ recoverai/
 
 ---
 
-## Local Development
+# Installation & Setup
 
-### Backend
+## Prerequisites
+
+Install the following before running RecoverAI locally:
+
+- Python 3.12+
+- Node.js 20+
+- npm
+- PostgreSQL 15+ or SQLite
+- Git
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Bhumika168/recoverai.git
+cd recoverai
+```
+
+---
+
+## Backend Setup
+
+Move into the backend directory:
 
 ```bash
 cd backend
+```
 
-python -m venv .venv
+Create a Python virtual environment:
+
+```bash
+python3 -m venv .venv
+```
+
+Activate the virtual environment.
+
+### macOS / Linux
+
+```bash
 source .venv/bin/activate
+```
 
+### Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+Install backend dependencies:
+
+```bash
 pip install -r requirements.txt
+```
 
+---
+
+## Backend Environment Configuration
+
+Create a backend `.env` file using the example configuration:
+
+```bash
+cp .env.example .env
+```
+
+Configure the required environment variables.
+
+Example:
+
+```env
+ENVIRONMENT=development
+DEBUG=true
+
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/recoverai
+
+JWT_SECRET_KEY=your-secret-key
+
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+
+COOKIE_SECURE=false
+COOKIE_SAMESITE=lax
+COOKIE_NAME=recoverai_session
+
+PAYMENT_PROVIDER=mock
+
+LOG_LEVEL=INFO
+```
+
+For local SQLite development, configure the database URL according to the application's supported SQLite configuration.
+
+Never commit real secrets or production credentials to GitHub.
+
+---
+
+## Database Setup
+
+Make sure PostgreSQL is running if you are using PostgreSQL.
+
+Create the RecoverAI database:
+
+```sql
+CREATE DATABASE recoverai;
+```
+
+From the `backend` directory, run the database migrations:
+
+```bash
 alembic upgrade head
+```
 
+This creates the required database schema.
+
+---
+
+## Start the Backend
+
+From the `backend` directory:
+
+```bash
 uvicorn app.main:app --reload
 ```
 
-### Frontend
+The backend will be available at:
+
+```text
+http://localhost:8000
+```
+
+API endpoints are available under:
+
+```text
+http://localhost:8000/api/v1
+```
+
+---
+
+## Frontend Setup
+
+Open a new terminal and move to the frontend directory:
 
 ```bash
 cd frontend
+```
 
+Install dependencies:
+
+```bash
 npm install
+```
+
+Create the frontend environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Configure the backend API URL:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-The frontend requires the backend API URL through the appropriate environment variable.
+The frontend will be available at:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Running the Application
+
+Start both services.
+
+### Terminal 1 — Backend
+
+```bash
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload
+```
+
+### Terminal 2 — Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+Create an account, create an organization, configure the workspace, and begin using the recovery workflow.
+
+---
+
+## Production Build
+
+### Frontend
+
+From the `frontend` directory:
+
+```bash
+npm install
+npm run build
+npm start
+```
+
+### Backend
+
+From the `backend` directory:
+
+```bash
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
 ---
 
 ## Environment Variables
 
-Sensitive configuration is provided through environment variables.
+RecoverAI uses environment variables for runtime configuration and secrets.
 
-Example configuration is provided in:
+Important configuration includes:
 
-```text
-.env.example
-```
+- `DATABASE_URL`
+- `JWT_SECRET_KEY`
+- `JWT_ALGORITHM`
+- `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `APP_URL`
+- `API_URL`
+- `CORS_ORIGINS`
+- `COOKIE_SECURE`
+- `COOKIE_SAMESITE`
+- `PAYMENT_PROVIDER`
+- `NEXT_PUBLIC_API_URL`
+
+Refer to `.env.example` for the available configuration structure.
 
 Production secrets must never be committed to the repository.
-
-Typical configuration includes:
-
-- Database connection
-- JWT secret
-- Application URL
-- API URL
-- CORS origins
-- Payment provider configuration
-- Runtime environment
 
 ---
 
 ## Testing
 
-The application has been verified through automated and build checks.
+RecoverAI includes automated backend tests and frontend build/type validation.
 
-Current verification:
+Run backend tests:
 
-- **37/37 backend tests passing**
-- **0 TypeScript errors**
-- **24/24 Next.js routes/build checks passing**
-- Multi-tenant isolation verified
-- Authentication and authorization verified
-- Recovery workflow verified
-- Policy guardrails verified
-- Settlement verification verified
-- SHA-256 audit chain verified
-- Webhook idempotency verified
+```bash
+cd backend
+pytest
+```
+
+Run frontend checks:
+
+```bash
+cd frontend
+npm run build
+```
+
+The application has been validated for:
+
+- Authentication
+- Authorization
+- Multi-tenant isolation
+- Organization management
+- Transaction management
+- Recovery workflows
+- Policy enforcement
+- Human approval
+- Retry stopping
+- Settlement verification
+- Webhook handling
+- Idempotent execution
+- Audit logging
+- Security controls
 
 ---
 
 ## Security
 
-RecoverAI treats financial recovery as a controlled workflow rather than an unrestricted AI action.
+RecoverAI treats revenue recovery as a controlled financial workflow.
 
-Security and safety controls include:
+Security controls include:
 
 - Tenant-isolated data access
 - Authenticated API access
-- Role-based authorization
+- Organization-level authorization
 - Password hashing
-- JWT session security
+- JWT-based authentication
+- Secure session handling
 - Rate limiting
 - CORS restrictions
 - Webhook signature verification
-- Idempotency controls
+- Idempotent execution
 - Hard-decline suppression
 - Maximum retry limits
 - Human approval for high-value transactions
 - Verified settlement before revenue recognition
 - Cryptographically linked audit records
+- Secret redaction
 
 ---
 
 ## Deployment
 
-The application is structured as separate frontend and backend services.
+RecoverAI can be deployed as separate frontend and backend services.
 
 The production architecture consists of:
 
 ```text
-User
- │
- ▼
-Next.js Frontend
- │
- ▼
-FastAPI Backend
- │
- ├── PostgreSQL
- │
- ├── Recovery Engine
- │
- ├── Policy Engine
- │
- ├── Authentication
- │
- └── Audit System
+                    ┌───────────────────┐
+                    │       User        │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Next.js Frontend  │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │  FastAPI Backend  │
+                    └─────────┬─────────┘
+                              │
+                 ┌────────────┼────────────┐
+                 │            │            │
+                 ▼            ▼            ▼
+           PostgreSQL    Recovery Engine  Audit System
 ```
 
-The deployed demonstration uses a sandbox/mock payment environment.
+The deployed application uses a sandbox/mock payment environment for safe demonstration and development.
 
-Live payment-provider credentials are required before using the system for real financial transactions.
+Live payment credentials should only be configured when real financial processing is intentionally enabled.
 
 ---
 
 ## Demo Safety
 
-The demonstration dataset is synthetic.
+RecoverAI provides a synthetic sandbox environment for testing and demonstration.
 
-No real customer funds are moved during the demonstration.
-
-The sandbox demonstrates:
+The sandbox is designed to demonstrate:
 
 - AI diagnosis
-- Policy enforcement
+- Recovery decisioning
+- Deterministic policy enforcement
 - Human approval
 - Recovery execution
 - Settlement verification
-- Retry stopping
 - Hard-decline suppression
+- Retry stopping
 - Auditability
 - Revenue reconciliation
 
-The reported recovery metrics come from the application's persisted sandbox data.
+No real customer funds are moved during sandbox operation.
 
 ---
 
-## Why RecoverAI?
+## Design Principles
 
-RecoverAI is designed around a simple principle:
+RecoverAI is built around four principles:
 
-> **AI should recommend. Policies should govern. Humans should control high-risk actions. Verification should determine success.**
+### AI Should Recommend
 
-Instead of blindly retrying failed payments, RecoverAI creates a controlled revenue recovery loop that balances:
+AI is responsible for analyzing failures and recommending appropriate recovery actions.
 
-- Recovery rate
-- Financial safety
-- Customer experience
-- Operational efficiency
-- Human oversight
-- Auditability
+### Policies Should Govern
+
+Deterministic business rules decide whether an AI recommendation is permitted.
+
+### Humans Should Control High-Risk Actions
+
+High-value or sensitive recovery actions can require explicit human approval.
+
+### Verification Should Determine Success
+
+A recovery attempt is not considered successful until settlement is verified.
 
 ---
 
 ## Project Status
 
-RecoverAI has completed its end-to-end demonstration workflow, including:
+RecoverAI includes an end-to-end implementation of:
 
-- Authentication
+- User authentication
 - Organization onboarding
 - Multi-tenant isolation
 - Transaction ingestion
-- AI diagnosis
+- AI failure diagnosis
 - Recovery decisioning
 - Deterministic policy enforcement
-- Human approval
+- Human approval workflows
 - Bounded retries
 - Recovery execution
 - Settlement verification
-- Audit logging
-- Sandbox demonstration
+- Payment provider abstraction
+- Webhook processing
+- Idempotency controls
+- SHA-256 audit logging
+- Sandbox recovery workflows
 - Production deployment architecture
+
+---
+
+## Live Application
+
+**RecoverAI:**  
+https://recoverai-frontend-3ny5.onrender.com
+
+**GitHub Repository:**  
+https://github.com/Bhumika168/recoverai
 
 ---
 
