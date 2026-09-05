@@ -219,6 +219,12 @@ export const api = {
     });
   },
 
+  async recoverTransaction(id: string): Promise<any> {
+    return fetchAPI<any>(`/transactions/${id}/recover`, {
+      method: "POST",
+    });
+  },
+
   async previewCSV(file: File): Promise<CSVPreviewResponse> {
     const formData = new FormData();
     formData.append("file", file);

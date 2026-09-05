@@ -793,3 +793,46 @@ async def get_transaction(
         message="Transaction found",
         data=TransactionResponse.model_validate(txn),
     )
+
+
+@router.post("/{transaction_id}/recover", response_model=APIResponse[dict])
+async def recover_single_transaction(
+    transaction_id: str,
+    org_context: tuple = Depends(get_current_org_context),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Execute autonomous revenue recovery workflow for an individual real transaction
+    strictly belonging to the authenticated organization.
+    Evaluates root-cause diagnosis, executes deterministic policy guardrails,
+    triggers mock/safe recovery execution, and records the event in the SHA-256 audit ledger.
+    """
+    org, membership = org_context
+    result = await db.execute(
+        select(Transaction).where(
+            Transaction.organization_id == org.id,
+            or_(Transaction.id == transaction_id, Transaction.transaction_id == transaction_id),
+        )
+    )
+    txn = result.scalar_one_or_none()
+    if not txn:
+        raise EntityNotFoundException("Transaction", transaction_id)
+
+    # Run the full recovery pipeline
+    case = await recover_transaction(
+        transaction_id=txn.id,
+        db=db,
+        actor=f"USER:{membership.user_id}",
+    )
+
+    return APIResponse(
+        message="Transaction recovery workflow executed successfully",
+        data={
+            "transaction_id": txn.id,
+            "case_id": case.id,
+            "status": case.status.value if hasattr(case.status, "value") else str(case.status),
+            "requires_human_approval": case.requires_human_approval,
+            "amount_at_risk": case.amount_at_risk,
+            "strategy_summary": case.strategy_summary,
+        },
+    )

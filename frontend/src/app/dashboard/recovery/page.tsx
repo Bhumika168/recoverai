@@ -21,10 +21,6 @@ import { api } from "@/lib/api";
 // Helper: Format authoritative transaction display identifier
 function formatTransactionDisplayId(caseTxnId: string, txnHumanId?: string): string {
   if (txnHumanId && txnHumanId.trim()) return txnHumanId;
-  const match = caseTxnId.match(/txn_[^_]+_(\d{3})_/);
-  if (match) {
-    return `TXN-DEMO-${match[1]}`;
-  }
   return caseTxnId.slice(0, 16);
 }
 
@@ -525,7 +521,7 @@ export default function RecoveryQueuePage() {
           <Search className="w-4 h-4 text-[#66625B] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search TXN-DEMO-045, failure reason, policy rule..."
+            placeholder="Search transaction ID, failure reason, policy rule..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#080807] border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#F5F0E8] placeholder:text-[#66625B] focus:outline-none focus:border-[#D79A43]/60 transition-colors"

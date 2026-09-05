@@ -28,7 +28,24 @@ export default function TransactionDetailPage() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRecovering, setIsRecovering] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [recoverMessage, setRecoverMessage] = useState<string | null>(null);
+
+  const handleRecover = async () => {
+    try {
+      setIsRecovering(true);
+      setRecoverMessage(null);
+      await api.recoverTransaction(id);
+      setRecoverMessage("Recovery workflow executed.");
+      await loadData();
+    } catch (err: any) {
+      console.error("Failed to recover transaction:", err);
+      setRecoverMessage(`Recovery failed: ${err.message}`);
+    } finally {
+      setIsRecovering(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -145,26 +162,54 @@ export default function TransactionDetailPage() {
             </p>
           </div>
 
-          {/* Action Approval Gate if held */}
-          {caseDetail?.status === "PENDING_APPROVAL" && (
-            <div className="p-4 rounded-xl border border-[#E5A958]/35 bg-[#E5A958]/10 max-w-sm">
-              <div className="flex items-center gap-2 text-[#E5A958] font-mono text-xs font-bold mb-1">
-                <ShieldAlert className="w-4 h-4" />
-                Human Approval Required
-              </div>
-              <p className="text-[11px] font-mono text-[#E5A958]/80 mb-3">
-                {caseDetail.approval_reason || "Deterministic policy: High-value transaction held."}
-              </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {transaction.status === "FAILED" && caseDetail?.status !== "PENDING_APPROVAL" && caseDetail?.status !== "RECOVERED" && (
               <button
-                onClick={handleApprove}
-                disabled={isApproving}
-                className="w-full py-1.5 px-3 rounded bg-[#E5A958] hover:bg-[#F0B84B] text-[#0A0A09] text-xs font-mono font-bold transition-all shadow-gold"
+                onClick={handleRecover}
+                disabled={isRecovering}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-bold bg-[#D79A43] hover:bg-[#F0B84B] text-[#070706] shadow-gold transition-all cursor-pointer disabled:opacity-50"
               >
-                {isApproving ? "Executing Approved Action..." : "Approve & Execute Recovery"}
+                {isRecovering ? (
+                  <>
+                    <Coins className="w-3.5 h-3.5 animate-spin" />
+                    <span>RUNNING RECOVERY...</span>
+                  </>
+                ) : (
+                  <>
+                    <Coins className="w-3.5 h-3.5" />
+                    <span>RECOVER PAYMENT</span>
+                  </>
+                )}
               </button>
-            </div>
-          )}
+            )}
+
+            {/* Action Approval Gate if held */}
+            {caseDetail?.status === "PENDING_APPROVAL" && (
+              <div className="p-4 rounded-xl border border-[#E5A958]/35 bg-[#E5A958]/10 max-w-sm">
+                <div className="flex items-center gap-2 text-[#E5A958] font-mono text-xs font-bold mb-1">
+                  <ShieldAlert className="w-4 h-4" />
+                  Human Approval Required
+                </div>
+                <p className="text-[11px] font-mono text-[#E5A958]/80 mb-3">
+                  {caseDetail.approval_reason || "Deterministic policy: High-value transaction held."}
+                </p>
+                <button
+                  onClick={handleApprove}
+                  disabled={isApproving}
+                  className="w-full py-1.5 px-3 rounded bg-[#E5A958] hover:bg-[#F0B84B] text-[#0A0A09] text-xs font-mono font-bold transition-all shadow-gold cursor-pointer disabled:opacity-50"
+                >
+                  {isApproving ? "Executing Approved Action..." : "Approve & Execute Recovery"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+        {recoverMessage && (
+          <div className="mt-3 pt-3 border-t border-white/[0.08] text-xs font-mono text-[#D79A43] flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>{recoverMessage}</span>
+          </div>
+        )}
       </div>
 
       {/* Grid: Diagnostics & AI Decision Breakdown */}
