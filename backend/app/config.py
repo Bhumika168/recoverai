@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     APP_URL: str = "https://recoverai-3ny5.onrender.com" if os.getenv("RENDER") else "http://localhost:3000"
     API_URL: str = "https://recoverai-u329.onrender.com" if os.getenv("RENDER") else "http://localhost:8000"
     CORS_ORIGINS: Union[List[str], str] = [
+        "https://recoverai-frontend-3ny5.onrender.com",
         "https://recoverai-3ny5.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
@@ -83,6 +84,7 @@ class Settings(BaseSettings):
 
         # Always include production frontend origin and local dev origins
         known_origins = [
+            "https://recoverai-frontend-3ny5.onrender.com",
             "https://recoverai-3ny5.onrender.com",
             "http://localhost:3000",
             "http://127.0.0.1:3000",
