@@ -62,18 +62,18 @@ export default function DashboardOverviewPage() {
 
       const [kpiRes, chartRes, actRes, oppRes, dsRes, casesRes] = await Promise.all([
         api.getKPIs(timeRange),
-        api.getCharts(),
-        api.getRecentActivity(8),
-        api.getTopOpportunities(5),
-        api.getDataSourcesStatus(),
+        api.getCharts().catch(() => null),
+        api.getRecentActivity(8).catch(() => []),
+        api.getTopOpportunities(5).catch(() => []),
+        api.getDataSourcesStatus().catch(() => null),
         api.getCases(undefined, 100).catch(() => []),
       ]);
 
       setKpis(kpiRes);
-      setChartsData(chartRes);
-      setRecentActivity(actRes);
-      setTopOpportunities(oppRes);
-      setDataSources(dsRes);
+      if (chartRes) setChartsData(chartRes);
+      if (actRes) setRecentActivity(actRes);
+      if (oppRes) setTopOpportunities(oppRes);
+      if (dsRes) setDataSources(dsRes);
 
       if (casesRes && casesRes.length > 0) {
         const c50k = casesRes.find((c: any) => c.amount_at_risk === 50000);

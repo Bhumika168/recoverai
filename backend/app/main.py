@@ -80,7 +80,28 @@ async def log_requests_middleware(request: Request, call_next):
     except Exception as exc:
         process_time_ms = round((time.time() - start_time) * 1000, 2)
         logger.error(f"{method} {path} FAILED after {process_time_ms}ms: {str(exc)}", exc_info=True)
-        raise exc
+        origin = request.headers.get("origin")
+        allowed_origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else [settings.CORS_ORIGINS]
+        resp_origin = origin if (origin in allowed_origins or "*" in allowed_origins) else (allowed_origins[0] if allowed_origins else "*")
+        headers = {
+            "X-Process-Time": f"{process_time_ms}ms",
+            "Access-Control-Allow-Origin": resp_origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "success": False,
+                "message": "An internal server error occurred",
+                "error": {
+                    "error_code": "INTERNAL_SERVER_ERROR",
+                    "detail": str(exc) if settings.DEBUG else "Please contact system administrator",
+                },
+            },
+            headers=headers,
+        )
 
 
 # Exception Handlers

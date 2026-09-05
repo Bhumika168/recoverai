@@ -12,6 +12,7 @@ from app.api.v1.templates import router as templates_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.customer_recovery import router as customer_recovery_router
 from app.api.v1.demo import router as demo_router
+from app.api.v1.sandbox import router as sandbox_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(auth_router)
@@ -27,5 +28,6 @@ api_v1_router.include_router(cases_router)
 api_v1_router.include_router(audit_router)
 api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(demo_router)
+api_v1_router.include_router(sandbox_router)
 
 __all__ = ["api_v1_router"]

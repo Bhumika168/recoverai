@@ -387,17 +387,25 @@ async def get_top_opportunities(
     org, _ = org_context
 
     # Unrecovered active cases ordered by amount at risk
+    # Filter terminal statuses in Python to guarantee robustness across database enum variants
+    terminal_statuses = {
+        CaseStatus.RECOVERED,
+        CaseStatus.CANCELLED,
+        CaseStatus.UNRECOVERABLE,
+        CaseStatus.EXHAUSTED,
+        CaseStatus.STOPPED,
+        CaseStatus.BLOCKED,
+        CaseStatus.FAILED,
+    }
+
     query = (
         select(RecoveryCase)
-        .where(
-            RecoveryCase.organization_id == org.id,
-            RecoveryCase.status.not_in([CaseStatus.RECOVERED, CaseStatus.CANCELLED, CaseStatus.UNRECOVERABLE]),
-        )
+        .where(RecoveryCase.organization_id == org.id)
         .order_by(desc(RecoveryCase.amount_at_risk))
-        .limit(limit)
+        .limit(limit * 4)
     )
     cases_res = await db.execute(query)
-    cases = cases_res.scalars().all()
+    cases = [c for c in cases_res.scalars().all() if c.status not in terminal_statuses][:limit]
 
     opportunities = []
     for c in cases:

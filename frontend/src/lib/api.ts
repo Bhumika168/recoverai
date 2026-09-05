@@ -490,20 +490,20 @@ export const api = {
     });
   },
 
-  // Hackathon Demonstration Mode
+  // Sandbox Mode (Safe for Production & Development)
   async resetDemoDataset(): Promise<any> {
-    return fetchAPI("/demo/reset", {
+    return fetchAPI("/sandbox/reset", {
       method: "POST",
     });
   },
 
   async runDemoBatch(): Promise<any> {
-    return fetchAPI("/demo/run", {
+    return fetchAPI("/sandbox/run", {
       method: "POST",
     });
   },
 
   async getDemoStatus(): Promise<any> {
-    return fetchAPI("/demo/status");
+    return fetchAPI("/sandbox/status");
   },
 };
